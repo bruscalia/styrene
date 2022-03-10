@@ -1,0 +1,15 @@
+setup.py
+styrene/__init__.py
+styrene/bvp.py
+styrene/data_repository.py
+styrene/fluid_dynamics.py
+styrene/heterogeneous_kinetics.py
+styrene/mass_transfer.py
+styrene/orthogonal_collocation.py
+styrene/reactor_class.py
+styrene/thermodynamics.py
+styrene.egg-info/PKG-INFO
+styrene.egg-info/SOURCES.txt
+styrene.egg-info/dependency_links.txt
+styrene.egg-info/requires.txt
+styrene.egg-info/top_level.txt
