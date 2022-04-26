@@ -15,7 +15,7 @@ from styrene.heterogeneous_kinetics import (components, eb, st, h2, bz, me, to, 
 from styrene.data_repository import (_a, _b, _c, _d, _va, _vb, _vc, _vd,
                                      _vHr_298, _Hf_298)
 from styrene.data_repository import (_Mm, _Tc, _Pc, _sigma, _ek, _delta, get_mi_mist)
-from styrene.bvp import OrthogonalCollocation
+from collocation.bvp import OrthogonalCollocation
 from styrene.mass_transfer import fnu, fuller_ab_mat, wilke_mist, effective_diff
 from styrene.thermodynamics import get_Cp, get_vHr, get_HfT
 from styrene.fluid_dynamics import fpressure_drop

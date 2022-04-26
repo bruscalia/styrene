@@ -7,10 +7,6 @@ Created on Tue May 19 11:15:19 2020
 import numpy as np
 from styrene.thermodynamics import get_vHr, get_vSr, get_vGr
 from styrene.data_repository import _va,_vb,_vc,_vd,_vHr_298,_vSr_298
-import styrene.mass_transfer as mt
-from styrene.mass_transfer import fnu
-from styrene.data_repository import _Mm
-import styrene.orthogonal_collocation as ocd
 
 #Ea is in kJ/mol.K
 #Basic kinetic constant from Arrhenius
