@@ -9,14 +9,14 @@ from styrene.thermodynamics import f_vabcd
 from styrene.fluid_dynamics import fmi_Thodos, fpot_Sm, fmi_CE, fphi_mat, fmi_mist
 
 #Component labels to use in arrays
-eb=0
-st=1
-h2=2
-bz=3
-me=4
-to=5
-ee=6
-h2o=7
+eb = 0
+st = 1
+h2 = 2
+bz = 3
+me = 4
+to = 5
+ee = 6
+h2o = 7
 
 components = ['eb','st','h2','bz','me','to','ee','h20']
 

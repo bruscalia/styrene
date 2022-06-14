@@ -32,6 +32,7 @@ def fmi_Thodos(T, Tc, Pc, Mm):
     Tr = T / Tc
     return (4.61*Tr**0.618-2.04*np.exp(-0.449*Tr)+1.94*np.exp(-4.058*Tr)+0.1)/eps
 
+
 def fmi_CE(T, Mm, sigma, potV):
     """
     Returns the viscosity of pure component by Chapman-Enskog equation
