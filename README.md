@@ -1,5 +1,5 @@
 # styrene
-A Python framework for simulating industrial styrene adiabatic reactors using the kinetic model proposed by Lee & Fromend (2008) and program developed by Leite et al (2021).
+A Python framework for simulating industrial styrene adiabatic reactors using the kinetic model proposed by Lee & Fromend (2008) and program structure by Leite et al (2021).
 
 ## Contents
 [Install](#install) / [Usage](#usage) / [Citation](#citation) / [References](#references) / [Contact](#contact)
@@ -9,13 +9,14 @@ First, make sure you have a Python 3 environment installed.
 
 To install from github:
 ```
-pip install -e git+https://github.com/bruscalia/collocation#egg=collocation
+pip install -e git+ADD_LINK
 ```
 
 ## Usage
 
 ```python
 import numpy as np
+import matplotlib.pyplot as plt
 from styrene.reactor import MultiBed
 ```
 
