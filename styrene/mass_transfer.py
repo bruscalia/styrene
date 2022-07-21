@@ -16,14 +16,19 @@ def fuller_ab(Ma, Mb, nua, nub, T, P):
     ----------
     Ma : float
         Molar mass of component a in kg/kmol.
+        
     Mb : float
         Molar mass of component b in kg/kmol.
+        
     nua : float
         Fuller coefficient for component a.
+        
     nub : float
         Fuller coefficient for component b.
+        
     T : float or int
         Temperature in K.
+        
     P : float or int
         Pressure in bar.
 
@@ -44,10 +49,13 @@ def fuller_ab_mat(M, nu, T, P):
     ----------
     M : list or 1d array
         Molar masses of components in kg/kmol.
+        
     nu : list or 1d array
         Coefficients of Fuller of components.
+        
     T : float or int
         Temperature in K.
+        
     P : float or int
         Pressure in bar.
 
@@ -70,6 +78,7 @@ def wilke_mist_base(y, mat):
     ----------
     y : list od 1d array
         Contains fractions of each component in the phase of mixture.
+        
     mat : 2d array
         Matrix containing individual diffusion coefficients for each pair AB.
 
@@ -79,11 +88,7 @@ def wilke_mist_base(y, mat):
         Contains each component diffusion coefficient in the mixture.
 
     """
-    _dim = len(y)
-    vect = np.zeros(_dim)
-    for i in range(0,_dim):
-        vect[i] = (1-y[i])/(sum([(y[j]/mat[i,j]) for j in range(0,len(mat))])-(y[i]/mat[i,i]))
-    return vect
+    return (1 - y) / (np.sum(y / mat, axis=1) - (y / np.linalg.diag(mat)))
 
 def wilke_mist(y, mat):
     """
@@ -93,6 +98,7 @@ def wilke_mist(y, mat):
     ----------
     y : list od 1d array
         Contains fractions of each component in the phase of mixture.
+        
     mat : 2d array
         Matrix containing individual diffusion coefficients for each pair AB.
 
@@ -117,8 +123,10 @@ def sm_mist(y, a_est, mat):
     ----------
     y : list od 1d array
         Contains fractions of each component in the phase of mixture.
+        
     a_est : 1d array
         Stoichiometric coefficients.
+        
     mat : 2d array
         Matrix containing individual diffusion coefficients for each pair AB.
 
@@ -128,14 +136,12 @@ def sm_mist(y, a_est, mat):
         Contains each component diffusion coefficient in the mixture.
 
     """
-    _dim = len(y)
-    vect = np.zeros(_dim)
-    for j in range(0,_dim):
-        #up = (1-y[j]*(sum([a_est[k]/a_est[j] for k in range(0,len(mat))])-a_est[j]/a_est[j]))
-        up = (1-y[j]*(sum([a_est[k]/a_est[j] for k in range(0,len(mat))])))
-        down = (sum([(1/mat[j,k])*((y[k]-y[j])*(a_est[k]/a_est[j])) for k in range(0,len(mat))]))
-        vect[j] = up/down
-    return vect
+    return (
+        (1 - y * np.sum(a_est.reshape((-1, 1)) / a_est.reshape((-1, 1)).T, axis=0))
+        / (np.sum((a_est.reshape((-1, 1)) / a_est.reshape((-1, 1)).T)
+       * (y.reshape((-1, 1)) - y.reshape((-1, 1)).T)
+       * (1 / mat.T), axis=0))
+    )
 
 def knudseen(r_pore, T, Mm):
     """
@@ -145,8 +151,10 @@ def knudseen(r_pore, T, Mm):
     ----------
     r_pore : float
         Pore radius in m.
+        
     T : float or int
         Temperature in K.
+        
     Mm : float, int, or 1d array
         Molar mass of each component in kg/kmol.
 
@@ -166,8 +174,10 @@ def effective_diff(Da, tao, es):
     ----------
     Da : float or 1d array
         Contains the diffusion coefficients of each component in the mixture.
+        
     tao : float or int
         Tortuosity factor.
+        
     es : float or int
         Porosity.
 
@@ -187,10 +197,13 @@ def effective_diff_pore(Dk, Dm, tao, es):
     ----------
     Dk : 1d array
         Knudssen diffusion coefficients of each component.
+        
     Dm : 1d array
         Diffusion coefficients of each component in the mixture.
+        
     tao : float or int
         Tortuosity factor.
+        
     es : float or int
         Porosity.
 
@@ -218,10 +231,13 @@ def fnu(C, H, O, Arom):
     ----------
     C : int
         Number of Carbons in substance.
+        
     H : int
         Number of Hidrogens in substance.
+        
     O : int
         Number of Oxigens in substance.
+        
     Arom : int
         Number of Aromatic rings in substance.
 

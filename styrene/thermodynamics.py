@@ -14,12 +14,16 @@ def heat_capacity(a, b, c, d, T):
     ----------
     a : float
         Coefficient from Reid.
+        
     b : float
         Coefficient from Reid.
+        
     c : float
         Coefficient from Reid.
+        
     d : float
         Coefficient from Reid.
+        
     T : float or int
         Temperature in K.
 
@@ -39,8 +43,10 @@ def f_vcoef(coef, species_list, eq_coef_list):
     ----------
     coef : 1d array or list
         Property or coefficient of all components in the reacting system.
+        
     species_list : 1d array
         Contains int of the positions of each component in the reaction in the list of coefs.
+        
     eq_coef_list : int
         Stoichiometric coefficients of the species of species_list in the reacting system.
 
@@ -62,10 +68,13 @@ def f_vabcd(abcd, species_list, eq_coef_list):
     ----------
     abcd : 2d array
         Property or coefficient of all components in the reacting system. Each line corresponds to one property.
+        
     species_list : 1d array
         Contains int of the positions of each component in the reaction in the list of coefs.
+        
     eq_coef_list : int
         Stoichiometric coefficients of the species of species_list in the reacting system.
+        
 
     Returns
     -------
@@ -81,10 +90,6 @@ def f_vabcd(abcd, species_list, eq_coef_list):
         j += 1
     return res
 
-'''import pandas as pd
-df_export = pd.DataFrame([va,vb,vc,vd,vHr_298],index=['va','vb','vc','vd','vHf_298'],columns=['1','2','3','4'])
-with pd.ExcelWriter('Styrene_Data'+'.xlsx') as writer:
-    df_export.to_excel(writer, sheet_name='Heat_capacities')'''
 
 def get_vHr(T, vHr_298, va, vb, vc, vd):
     """
@@ -94,16 +99,22 @@ def get_vHr(T, vHr_298, va, vb, vc, vd):
     ----------
     T : float or int
         Temperature in K.
+        
     vHr_298 : 1d array, float or int
         Contains heat of reaction at 298.15K.
+        
     va : 1d array, float or int
         Contains delta coefficient of the reaction(s).
+        
     vb : 1d array, float or int
         Contains delta coefficient of the reaction(s).
+        
     vc : 1d array, float or int
         Contains delta coefficient of the reaction(s).
+        
     vd : 1d array, float or int
         Contains delta coefficient of the reaction(s).
+        
 
     Returns
     -------
@@ -123,16 +134,22 @@ def get_HfT(T, Hf_298, a, b, c, d):
     ----------
     T : float or int
         Temperature in K.
+        
     Hf_298 : 1d array, float or int
         Contains heat of formation at 298.15K.
+        
     a : 1d array, float or int
         Contains a coefficient of the heat capacity.
+        
     b : 1d array, float or int
         Contains a coefficient of the heat capacity.
+        
     c : 1d array, float or int
         Contains a coefficient of the heat capacity.
+        
     d : 1d array, float or int
         Contains a coefficient of the heat capacity.
+        
 
     Returns
     -------
@@ -152,16 +169,22 @@ def get_vSr(T, vSr_298, va, vb, vc, vd):
     ----------
     T : float or int
         Temperature in K.
+        
     vSr_298 : 1d array, float or int
         Contains entropy of reaction at 298.15K.
+        
     va : 1d array, float or int
         Contains delta coefficient of the reaction(s).
+        
     vb : 1d array, float or int
         Contains delta coefficient of the reaction(s).
+        
     vc : 1d array, float or int
         Contains delta coefficient of the reaction(s).
+        
     vd : 1d array, float or int
         Contains delta coefficient of the reaction(s).
+        
 
     Returns
     -------
@@ -180,8 +203,10 @@ def get_vGr(T, vHr, vSr, multireaction=False):
     ----------
     T : float or int
         Temperature in K.
+        
     vHr : float, int, or 1d array
         Contains heat of reaction at T in kJ/kmol.
+        
     vSr : float, int, or 1d array
         Contains entropy of reaction at T in kJ/kmol.K.
 
@@ -201,12 +226,16 @@ def get_Cp(T, a, b, c, d):
     ----------
     T : float or int
         Temperature in K.
+        
     a : 1d array or float
         Coefficients for heat capacity from Reid equation.
+        
     b : 1d array or float
         Coefficients for heat capacity from Reid equation.
+        
     c : 1d array or float
         Coefficients for heat capacity from Reid equation.
+        
     d : 1d array or float
         Coefficients for heat capacity from Reid equation.
 
