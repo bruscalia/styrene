@@ -47,7 +47,7 @@ def test_axial():
     sol = test_reac.outlet
     
     for key, val in sol.items():
-        assert abs(val - OUTPUT_AXIAL) <= 1e-6
+        assert abs(val - OUTPUT_AXIAL[key]) <= 1e-6
 
 
 def test_radial():
@@ -64,5 +64,5 @@ def test_radial():
     sol = test_reac.outlet
     
     for key, val in sol.items():
-        assert abs(val - OUTPUT_RADIAL) <= 1e-6
+        assert abs(val - OUTPUT_RADIAL[key]) <= 1e-6
 
