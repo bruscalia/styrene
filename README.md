@@ -9,7 +9,7 @@ First, make sure you have a Python 3 environment installed.
 
 To install from github:
 ```
-pip install -e git+ADD_LINK
+pip install -e git+https://github.com/bruscalia/styrene#egg=styrene
 ```
 
 ## Usage
@@ -55,11 +55,11 @@ plt.show()
 </p>
 
 ## References
-Lee, W. J. & Froment, G. F., 2008. Ethylbenzene Dehydrogenation into Styrene: Kinetic Modeling and Reactor Simulation. Industrial & Engineering Chemistry Research, February, 47(23), pp. 9183-9194.
+[Lee, W. J. & Froment, G. F., 2008. Ethylbenzene Dehydrogenation into Styrene: Kinetic Modeling and Reactor Simulation. Industrial & Engineering Chemistry Research, February, 47(23), pp. 9183-9194. doi:10.1021/ie071098u](https://doi.org/10.1021/ie071098u)
 
-Leite, B., Costa, A. O. S. & Costa Junior, E. F., 2021. Simulation and optimization of axial-flow and radial-flow reactors for dehydrogenation of ethylbenzene into styrene based on a heterogeneous kinetic model. Chem. Eng. Sci., Volume 244, p. 116805.
+[Leite, B., Costa, A. O. S. & Costa Junior, E. F., 2021. Simulation and optimization of axial-flow and radial-flow reactors for dehydrogenation of ethylbenzene into styrene based on a heterogeneous kinetic model. Chem. Eng. Sci., Volume 244, Article 116805. doi:10.1016/j.ces.2021.116805.](https://doi.org/10.1016/j.ces.2021.116805)
 
-Leite, B., Costa, A. O. S., Costa, E. F., 2023. Multi-objective optimization of adiabatic styrene reactors using Generalized Differential Evolution 3 (GDE3). Chem. Eng. Sci., 265, Article 118196. doi:10.1016/j.ces.2022.118196.
+[Leite, B., Costa, A. O. S., Costa, E. F., 2023. Multi-objective optimization of adiabatic styrene reactors using Generalized Differential Evolution 3 (GDE3). Chem. Eng. Sci., Volume 265, Article 118196. doi:10.1016/j.ces.2022.118196.](https://doi.org/10.1016/j.ces.2022.118196)
 
 ## Contact
 e-mail: bruscalia12@gmail.com
