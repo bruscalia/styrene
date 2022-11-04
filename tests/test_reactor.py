@@ -46,7 +46,7 @@ def test_axial():
     test_reac.solve(method="LSODA")
     sol = test_reac.outlet
     
-    for key, val in sol.items:
+    for key, val in sol.items():
         assert abs(val - OUTPUT_AXIAL) <= 1e-6
 
 
@@ -63,6 +63,6 @@ def test_radial():
     test_reac.solve(method="LSODA")
     sol = test_reac.outlet
     
-    for key, val in sol.items:
+    for key, val in sol.items():
         assert abs(val - OUTPUT_RADIAL) <= 1e-6
 
