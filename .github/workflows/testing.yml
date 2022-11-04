@@ -15,6 +15,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
       - name: Install styrene (setup)
         run: |
           python setup.py install
@@ -24,5 +28,4 @@ jobs:
           rm -rf styrene
       - name: Run Tests
         run: |
-          pip install pytest
           pytest -v --maxfail 1 --no-header -m "not long"
