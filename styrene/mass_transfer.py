@@ -1,14 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue May 19 10:38:49 2020
-
-@author: bruno
-"""
-
 import numpy as np
 
-#T(K), P(bar)
-def fuller_ab(Ma, Mb, nua, nub, T, P):
+
+# ------------------------------------------------------------------------------------------------
+# INDIVIDUAL COMPONENTS
+# ------------------------------------------------------------------------------------------------
+
+def calc_fuller_ab(Ma, Mb, nua, nub, T, P):
     """
     Function to get the diffusion coefficient of A in B pure using Fuller.
 
@@ -41,6 +38,7 @@ def fuller_ab(Ma, Mb, nua, nub, T, P):
     Dab = 1e-9 * (T**1.75) * ((1/Ma + 1/Mb) ** 0.5) / (P * ((nua**(1/3) + nub**(1/3))**2))
     return Dab
 
+
 def fuller_ab_mat(M, nu, T, P):
     """
     Function to get the diffusion coefficients of A in B pure using Fuller.
@@ -65,30 +63,16 @@ def fuller_ab_mat(M, nu, T, P):
         Diffusion coefficient of each pair of A in B pure in m^2/s.
 
     """
-    mat = fuller_ab(M.reshape([-1, 1]), M.reshape([1, -1]),
-                    nu.reshape([-1, 1]), nu.reshape([1, -1]),
-                    T, P)
+    mat = calc_fuller_ab(
+        M.reshape([-1, 1]), M.reshape([1, -1]),
+        nu.reshape([-1, 1]), nu.reshape([1, -1]),
+        T, P
+    )
     return mat
 
-def wilke_mist_base(y, mat):
-    """
-    Returns the diffusion coefficients for each component in the mixture using the Wilke equation.
-
-    Parameters
-    ----------
-    y : list od 1d array
-        Contains fractions of each component in the phase of mixture.
-        
-    mat : 2d array
-        Matrix containing individual diffusion coefficients for each pair AB.
-
-    Returns
-    -------
-    vect: 1d array
-        Contains each component diffusion coefficient in the mixture.
-
-    """
-    return (1 - y) / (np.sum(y / mat, axis=1) - (y / np.linalg.diag(mat)))
+# ------------------------------------------------------------------------------------------------
+# MIXTURE
+# ------------------------------------------------------------------------------------------------
 
 def wilke_mist(y, mat):
     """
@@ -108,12 +92,10 @@ def wilke_mist(y, mat):
         Contains each component diffusion coefficient in the mixture.
 
     """
-    _dim = len(y)
-    vect = np.zeros(_dim)
-    
     y = np.array(y)
     vect = (1 - y) / ((y / mat).sum(axis=1) - y / np.diag(mat))
     return vect
+
 
 def sm_mist(y, a_est, mat):
     """
@@ -143,6 +125,7 @@ def sm_mist(y, a_est, mat):
        * (1 / mat.T), axis=0))
     )
 
+
 def knudseen(r_pore, T, Mm):
     """
     Returns the Knudsen diffusion coefficient in a porous system.
@@ -166,6 +149,7 @@ def knudseen(r_pore, T, Mm):
     """
     return 97 * r_pore * (T / Mm) ** 0.5
 
+
 def effective_diff(Da, tao, es):
     """
     Returns the effective diffusion coefficients of components through the solid.
@@ -188,6 +172,7 @@ def effective_diff(Da, tao, es):
 
     """
     return Da*es/tao
+
 
 def effective_diff_pore(Dk, Dm, tao, es):
     """

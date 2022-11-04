@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon May 25 12:01:16 2020
-
-@author: bruno
-"""
-
 import numpy as np
+from styrene.data import HC, LOW
 
-def fmi_Thodos(T, Tc, Pc, Mm):
+
+# ------------------------------------------------------------------------------------------------
+# VISCOSITY OF INDIVIDUAL COMPONENTS
+# ------------------------------------------------------------------------------------------------
+
+def calc_mu_thodos(T, Tc, Pc, Mm):
     """
     Returns the viscosity of pure component by Thodos equation
 
@@ -24,7 +23,7 @@ def fmi_Thodos(T, Tc, Pc, Mm):
 
     Returns
     -------
-    mi: float
+    mu: float
         Viscosity of pure component in micro Poise.
 
     """
@@ -33,7 +32,7 @@ def fmi_Thodos(T, Tc, Pc, Mm):
     return (4.61*Tr**0.618-2.04*np.exp(-0.449*Tr)+1.94*np.exp(-4.058*Tr)+0.1)/eps
 
 
-def fmi_CE(T, Mm, sigma, potV):
+def calc_mu_chap_ens(T, Mm, sigma, potV):
     """
     Returns the viscosity of pure component by Chapman-Enskog equation
 
@@ -50,13 +49,14 @@ def fmi_CE(T, Mm, sigma, potV):
 
     Returns
     -------
-    mi: float
+    mu: float
         Viscosity of pure component in micro Poise.
 
     """
     return 26.69*(Mm * T)**0.5 / (sigma**2 * potV)
 
-def fpotV_LJ(T, ek, A=1.16145, B=0.14874, C=0.52487, D=0.77320, E=2.16178, F=2.43787):
+
+def calc_ci_lj(T, ek, A=1.16145, B=0.14874, C=0.52487, D=0.77320, E=2.16178, F=2.43787):
     """
     Returns the collision integral from Lennard-Jones equation
 
@@ -88,7 +88,8 @@ def fpotV_LJ(T, ek, A=1.16145, B=0.14874, C=0.52487, D=0.77320, E=2.16178, F=2.4
     Tstar = T / ek
     return A / (Tstar**B) + C * np.exp(-D * Tstar) + E * np.exp(-F * Tstar)
 
-def fpot_Sm(T, ek, delta):
+
+def calc_pot_sm(T, ek, delta):
     """
     Returns the collision integral from Stockmayer equation
 
@@ -108,19 +109,23 @@ def fpot_Sm(T, ek, delta):
 
     """
     Tstar = T/ek
-    potLJ = fpotV_LJ(T, ek)
+    potLJ = calc_ci_lj(T, ek)
     return potLJ + 0.2 * delta ** 2 / Tstar
 
-def fphi_mat(mi, Mm):
+# ------------------------------------------------------------------------------------------------
+# VISCOSITY OF MIXTURE
+# ------------------------------------------------------------------------------------------------
+
+def calc_phi_matrix(mu, Mm):
     """
     Returns the phi matrix used to obtain viscosity of mixture using Wilke's approximation
 
     Parameters
     ----------
-    mi : 1d array like
+    mu : 1d array like
         Viscosity of pure components. Units might be arbitraty be suggest micro Poise.
     Mm : 1d array like
-        Molar mass of each components.
+        Molar mass of components, kg/kmol.
 
     Returns
     -------
@@ -128,21 +133,92 @@ def fphi_mat(mi, Mm):
         phi matrix used to obtain viscosity of mixture.
 
     """
-    mi_ratio = np.atleast_2d(mi).reshape([-1, 1]) / np.atleast_2d(mi)
+    mu_ratio = np.atleast_2d(mu).reshape([-1, 1]) / np.atleast_2d(mu)
     Mm_ratio = np.atleast_2d(Mm).reshape([-1, 1]) / np.atleast_2d(Mm)
     
-    phi = (1 + mi_ratio**0.5 * (1 / Mm_ratio)**0.25) ** 2\
+    phi = (1 + mu_ratio**0.5 * (1 / Mm_ratio)**0.25) ** 2\
         / ((8 * (1 + Mm_ratio)) ** 0.5)
         
     return phi
 
-def fmi_mist(mi, y, phi):
+
+def calc_mu_components(T, Mm, Tc, Pc, sigma, ek, delta):
+    """Obtain individual viscosity
+
+    Parameters
+    ----------
+    T : float
+        Temperature, K.
+    Mm : 1d array
+        Molar mass of components, kg/kmol.
+    Tc : 1d array
+        Critical temperature of compoents, K.
+    Pc : 1d array
+        Critical pressure of components, bar.
+    sigma : 1d array
+        Coefficients in Chapman-Enskog equation.
+    ek : 1d array
+        Coefficients in Stockmayer equation.
+    delta : 1d array
+        Coefficients in Stockmayer equation.
+
+    Returns
+    -------
+    1d array
+        Individual viscosities.
+    """
+    
+    mu = np.zeros_like(Mm)
+    
+    # Hydrocarbons
+    mu[HC] = calc_mu_thodos(T, Tc[HC], Pc[HC], Mm[HC])
+    
+    # Low mass
+    potV = calc_pot_sm(T, ek[LOW], delta[LOW])
+    mu[LOW] = calc_mu_chap_ens(T, Mm[LOW], sigma[LOW], potV)
+    
+    return mu
+
+
+def calc_mu_mist(T, y, Mm, Tc, Pc, sigma, ek, delta):
+    """Obtain viscosity of mixture.
+
+    Parameters
+    ----------
+    T : float
+        Temperature, K.
+    y : 1d array
+        Molar fractions.
+    Mm : 1d array
+        Molar mass of components, kg/kmol.
+    Tc : 1d array
+        Critical temperature of compoents, K.
+    Pc : 1d array
+        Critical pressure of components, bar.
+    sigma : 1d array
+        Coefficients in Chapman-Enskog equation.
+    ek : 1d array
+        Coefficients in Stockmayer equation.
+    delta : 1d array
+        Coefficients in Stockmayer equation.
+
+    Returns
+    -------
+    float
+        Viscosity of mixture.
+    """
+    mu = calc_mu_components(T, Mm, Tc, Pc, sigma, ek, delta)
+    phi = calc_phi_matrix(mu, Mm)
+    return calc_mu_from_components(mu, y, phi)
+
+
+def calc_mu_from_components(mu, y, phi):
     """
     Returns the viscosity of the mixture using Wilke's approximation.
 
     Parameters
     ----------
-    mi : 1d array like
+    mu : 1d array like
         Viscosity of pure components. Units might be arbitraty be suggest micro Poise.
     y : 1d array like
         Fraction of each component in the phase.
@@ -151,19 +227,22 @@ def fmi_mist(mi, y, phi):
 
     Returns
     -------
-    res : float
-        Viscosity of the mixture, if coherent units are used in obtaining phi, it has the same units as mi.
+    mu_mix : float
+        Viscosity of the mixture, if coherent units are used in obtaining phi, it has the same units as mu.
         Suggestion: use micro Poise for viscosity and kg/kmol for molar mass.
-
     """
-    y_mi = np.array(y) * np.array(mi)
+    y_mu = np.array(y) * np.array(mu)
     ratio_ = np.array(phi).dot(np.array(y))
 
-    res = (y_mi / ratio_).sum()
+    mu_mix = (y_mu / ratio_).sum()
 
-    return res
+    return mu_mix
 
-def fpressure_drop(G, rhog, mi, Ac, dp, rhob, eg, a_erg=1.75, b_erg=150):
+# ------------------------------------------------------------------------------------------------
+# PRESSURE DROP
+# ------------------------------------------------------------------------------------------------
+
+def calc_pressure_drop(G, rhog, mu, Ac, dp, rhob, eg, a_erg=1.75, b_erg=150):
     """
     Returns dP/dW at a catalyst bed according to Ergun equation.
     Alternative for radial flow: a_erg=1.28,b_erg=458
@@ -174,7 +253,7 @@ def fpressure_drop(G, rhog, mi, Ac, dp, rhob, eg, a_erg=1.75, b_erg=150):
         Superficial mass velocity in kg/m2.h.
     rhog : float or int
         Gas density in kg/m3.
-    mi : float or int
+    mu : float or int
         Viscosity of the mixture in micro Poise.
     Ac : float or int
         Transversal area of the bed in m2.
@@ -196,11 +275,12 @@ def fpressure_drop(G, rhog, mi, Ac, dp, rhob, eg, a_erg=1.75, b_erg=150):
 
     """
     G = G/3600
-    mi = mi * 1e-7
+    mu = mu * 1e-7
     return (1 / (Ac*rhob)) * (G / (rhog*dp))\
-        * ((1-eg) / eg**3) * (b_erg*(1-eg) * mi/dp + a_erg*G) * 1e-5
+        * ((1-eg) / eg**3) * (b_erg*(1-eg) * mu/dp + a_erg*G) * 1e-5
+        
 
-def fpressure_drop_ideal_gas(F, T, P, rhob, dp, eg, Ac, Mm, mi, R=8.314e-2,
+def calc_pressure_drop_ideal_gas(F, T, P, rhob, dp, eg, Ac, Mm, mu, R=8.314e-2,
                              a_erg=1.75, b_erg=150, print_Re=False):
     """
     Returns dP/dW at a catalyst bed according to Ergun equation considering ideal gas.
@@ -225,7 +305,7 @@ def fpressure_drop_ideal_gas(F, T, P, rhob, dp, eg, Ac, Mm, mi, R=8.314e-2,
         Transversal area of the bed in m2.
     Mm : 1d array like
         Molar mass of each component in kg/kmol.
-    mi : float or int
+    mu : float or int
         Viscosity of the mixture in micro Poise.
     R : float, optional
         Ideal gases constant SI/10^-5 to convert Pa to bar. The default is 8.314e-2.
@@ -243,14 +323,14 @@ def fpressure_drop_ideal_gas(F, T, P, rhob, dp, eg, Ac, Mm, mi, R=8.314e-2,
 
     """
 
-    mi = mi * 1e-7
+    mu = mu * 1e-7
     F = np.array(F) / 3600
     y = np.array(F / F.sum())
     Mm = np.array(Mm)
     rhog = (y.T.dot(Mm)) * P / R / T
     G = (np.array(F).T.dot(Mm)) / Ac
     if print_Re:
-        print('Re/(1-eg):', G * dp / mi / (1-eg))
+        print('Re/(1-eg):', G * dp / mu / (1-eg))
     return (1 / (Ac*rhob)) * (G / (rhog*dp))\
-        *((1-eg) / eg**3) * (b_erg * (1-eg) * mi/dp + a_erg*G) *1e-5
+        *((1-eg) / eg**3) * (b_erg * (1-eg) * mu/dp + a_erg*G) *1e-5
         

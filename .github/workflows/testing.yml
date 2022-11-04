@@ -1,0 +1,27 @@
+name: Testing
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install styrene
+        run: |
+          python setup.py install
+      - name: Install styrene
+        run: |
+          pip install .
+          rm -rf styrene
+      - name: Run Tests
+        run: |
+          pytest -v --maxfail 1 --no-header -m "not long"

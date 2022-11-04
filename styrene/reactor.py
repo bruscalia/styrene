@@ -1,27 +1,23 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue May 26 12:31:06 2020
-
-@author: bruno
-"""
-
 import numpy as np
 import pandas as pd
+from scipy.integrate import solve_ivp
 import math
 
+from styrene.bvp import OrthogonalCollocation
 from styrene.kinetics import (rt1, rt2, rt3, rt4, rc1, rc2, rc3, rc4)
 from styrene.kinetics import (ft_reactants, effective_reactions)
 from styrene.kinetics import (components, eb, st, h2, bz, me, to, ee, h2o)
-from styrene.data import (_a, _b, _c, _d, _va, _vb, _vc, _vd, _vHr_298, _Hf_298)
-from styrene.data import (_Mm, _Tc, _Pc, _sigma, _ek, _delta, get_mi_mist)
-from collocation.bvp import OrthogonalCollocation
 from styrene.mass_transfer import fnu, fuller_ab_mat, wilke_mist, effective_diff
-from styrene.thermodynamics import get_Cp, get_vHr, get_HfT
-from styrene.fluid_dynamics import fpressure_drop
+from styrene.thermodynamics import get_Cp, calc_delta_hr, calc_hf_temp
+from styrene.fluid_dynamics import calc_pressure_drop, calc_mu_mist
+from styrene.data import \
+    (A, B, C, D, HF298, DELTA_A, DELTA_B, DELTA_C, DELTA_D, DELTA_HR298, DELTA_GF298)
+from styrene.data import (MM, TC, PC, SIGMA, EK, DELTA_POT)
 
-from scipy.integrate import solve_ivp
 
-
+# ------------------------------------------------------------------------------------------------
+# BASE CLASS
+# ------------------------------------------------------------------------------------------------
 class CatalystBed(object):
 
     def __init__(
@@ -104,7 +100,7 @@ class CatalystBed(object):
         else:
             self.Pterm = Pterm
     
-    def _w_flow(self, W, params):
+    def ode_system(self, W, params):
         pass
 
     def _f_term(self, W, params):
@@ -125,7 +121,7 @@ class CatalystBed(object):
              12.7]) * 1e-3
         return _nu
     
-    def get_diff_mist(self, y, T, P, Mm=_Mm):
+    def get_diff_mist(self, y, T, P, Mm=MM):
         """T in [K], P in [bar], result in m**2/h"""
         D = fuller_ab_mat(Mm, self._nu, T, P) #values in m**2/s
         Dm = wilke_mist(y, D) * 3600 #convert to m**2/h
@@ -141,9 +137,10 @@ class CatalystBed(object):
         Fme=0.0,
         Fto=4.968,
         Fee=0.0,
-        Fh2o=11*707.0,
+        Fh2o=11 * 707.0,
         T=900,
-        P=1.5):
+        P=1.5
+    ):
         """Set inlet conditions of catalyst bed.
 
         Parameters
@@ -225,7 +222,7 @@ class CatalystBed(object):
         
         CatalystBed._f_term.terminal = self.terminal
 
-        self.ivp_solution = solve_ivp(self._w_flow, (0, self.W), self._inlet_values,
+        self.ivp_solution = solve_ivp(self.ode_system, (0, self.W), self._inlet_values,
                                       events=(self._f_term), t_eval=t_eval,
                                       rtol=self._ivp_rtol, **kwargs)
         
@@ -246,10 +243,10 @@ class CatalystBed(object):
     
     def get_pre_heating(self, T_before):
         T0 = self.inlet['T']
-        h_before = get_HfT(T_before, _Hf_298, _a, _b, _c, _d)
-        h0 = get_HfT(T0, _Hf_298, _a, _b, _c, _d)
+        h_before = calc_hf_temp(T_before, HF298, A, B, C, D)
+        h0 = calc_hf_temp(T0, HF298, A, B, C, D)
         self.pre_heat = (h0 - h_before).dot(self._inlet_values[:-2]) / 3.6e6
-        return self.pre_heat#MW
+        return self.pre_heat # MW
     
     def get_dataframe(self, **options):
         if self.ivp_solution is None:
@@ -258,16 +255,19 @@ class CatalystBed(object):
         df['W'] = self.ivp_solution.t
         df.set_index('W', inplace=True)
         return df
-    
-      
-        
+
+# ------------------------------------------------------------------------------------------------
+# MAIN REACTORS
+# ------------------------------------------------------------------------------------------------
+
 class AxialBed(CatalystBed):
     
     def __init__(
         self, W,
         rhos=2500.0, rhob=1422.0, es=0.4,
         dp=0.0055, tao=3.0, inner_R=3.5,
-        **options):
+        **options
+    ):
         """Class for axial-flow catalyst bed.
 
         Parameters
@@ -314,14 +314,14 @@ class AxialBed(CatalystBed):
         ivp_rtol : float, optional
             Relative tolerance for ODE system, by default 1e-6
         """
-        
+
         super(AxialBed, self).__init__(
             W, rhos=rhos, rhob=rhob, es=es, dp=dp, tao=tao, inner_R=inner_R, **options
-            )
+        )
         
         self.Ac = math.pi*inner_R**2
     
-    def _w_flow(self, W, params):
+    def ode_system(self, W, params):
         
         F = np.array(params[0:-2])
         T = params[-2]
@@ -341,10 +341,9 @@ class AxialBed(CatalystBed):
                 y0 = self.collocation.y
                 root_method = 'hybr'
             
-            Dme = self.get_diff_mist(y, T, P, _Mm)
+            Dme = self.get_diff_mist(y, T, P, MM)
             args_ft = (pp[:3], T, Dme, self.rhos, self.es)
-            self.collocation.collocate(y0, args=args_ft,
-                                       method=root_method)
+            self.collocation.collocate(y0, args=args_ft, method=root_method)
      
             args_reactions = (T, self.rhos, self.es)
             eff = self.collocation.effectiveness(effective_reactions, args_reactions)
@@ -364,14 +363,14 @@ class AxialBed(CatalystBed):
         dF[ee] = rr2
         dF[h2o] = 0
         
-        Cp = get_Cp(T, _a, _b, _c, _d)
-        vHr = get_vHr(T, _vHr_298, _va, _vb, _vc, _vd)
-        dT = -(np.array([rr1, rr2, rr3, rr4]).T.dot(vHr)) / (Cp.T.dot(F))
+        Cp = get_Cp(T, A, B, C, D)
+        delta_hr = calc_delta_hr(T, DELTA_HR298, DELTA_A, DELTA_B, DELTA_C, DELTA_D)
+        dT = -(np.array([rr1, rr2, rr3, rr4]).T.dot(delta_hr)) / (Cp.T.dot(F))
         
-        mi = get_mi_mist(T, y, _Mm, _Tc, _Pc, _sigma, _ek, _delta)
-        rhog = (y.T.dot(np.array(_Mm))) * P / 8.314e-2 / T
-        G = (np.array(F).T.dot(np.array(_Mm))) / self.Ac
-        dP = -fpressure_drop(G, rhog, mi, self.Ac, self.dp, self.rhob, self.eg)
+        mu = calc_mu_mist(T, y, MM, TC, PC, SIGMA, EK, DELTA_POT)
+        rhog = (y.T.dot(np.array(MM))) * P / 8.314e-2 / T
+        G = (np.array(F).T.dot(np.array(MM))) / self.Ac
+        dP = -calc_pressure_drop(G, rhog, mu, self.Ac, self.dp, self.rhob, self.eg)
         
         if P < self.Pmin:
             dF = np.zeros(len(dF))
@@ -443,7 +442,7 @@ class RadialBed(CatalystBed):
         self.z = z
         self.Ac0 = 2 * math.pi * inner_R * z
     
-    def _w_flow(self, W, params):
+    def ode_system(self, W, params):
         
         F = np.array(params[0:-2])
         T = params[-2]
@@ -463,10 +462,9 @@ class RadialBed(CatalystBed):
                 y0 = self.collocation.y
                 root_method = 'hybr'
                 
-            Dme = self.get_diff_mist(y, T, P, _Mm)
+            Dme = self.get_diff_mist(y, T, P, MM)
             args_ft = (pp[:3], T, Dme, self.rhos, self.es)
-            self.collocation.collocate(y0, args=args_ft,
-                                       method=root_method)
+            self.collocation.collocate(y0, args=args_ft, method=root_method)
      
             args_reactions = (T, self.rhos, self.es)
             eff = self.collocation.effectiveness(effective_reactions, args_reactions)
@@ -486,17 +484,17 @@ class RadialBed(CatalystBed):
         dF[ee] = rr2
         dF[h2o] = 0
         
-        Cp = get_Cp(T, _a, _b, _c, _d)
-        vHr = get_vHr(T, _vHr_298, _va, _vb, _vc, _vd)
-        dT = -(np.array([rr1, rr2, rr3, rr4]).T.dot(vHr)) / (Cp.T.dot(F))
+        Cp = get_Cp(T, A, B, C, D)
+        delta_hr = calc_delta_hr(T, DELTA_HR298, DELTA_A, DELTA_B, DELTA_C, DELTA_D)
+        dT = -(np.array([rr1, rr2, rr3, rr4]).T.dot(delta_hr)) / (Cp.T.dot(F))
         
         r = (W / (math.pi * self.rhob * self.z) + self.inner_R**2) ** 0.5
         Ac = 2 * math.pi * r * self.z
         
-        mi = get_mi_mist(T, y, _Mm, _Tc, _Pc, _sigma, _ek, _delta)
-        rhog = (y.T.dot(np.array(_Mm))) * P / 8.314e-2 / T
-        G = (np.array(F).T.dot(np.array(_Mm))) / Ac
-        dP = -fpressure_drop(G, rhog, mi, Ac, self.dp, self.rhob, self.eg)
+        mu = calc_mu_mist(T, y, MM, TC, PC, SIGMA, EK, DELTA_POT)
+        rhog = (y.T.dot(np.array(MM))) * P / 8.314e-2 / T
+        G = (np.array(F).T.dot(np.array(MM))) / Ac
+        dP = -calc_pressure_drop(G, rhog, mu, Ac, self.dp, self.rhob, self.eg)
         
         if P < self.Pmin:
             dF = np.zeros(len(dF))
@@ -506,6 +504,9 @@ class RadialBed(CatalystBed):
                 
         return np.append(dF, [dT, dP])
 
+# ------------------------------------------------------------------------------------------------
+# EXPERIMENTAL CONDITIONS
+# ------------------------------------------------------------------------------------------------
 
 class IsoBed(CatalystBed):
     
@@ -531,7 +532,7 @@ class IsoBed(CatalystBed):
 
         super(IsoBed, self).__init__(W, rhos=rhos, rhob=rhob, es=es, **options)
     
-    def _w_flow(self, W, params):
+    def ode_system(self, W, params):
         F = np.array(params[0:-2])
         T = params[-2]
         P = params[-1]
@@ -555,6 +556,9 @@ class IsoBed(CatalystBed):
 
         return np.append(dF,[0, 0])
 
+# ------------------------------------------------------------------------------------------------
+# MULTIPLE BEDS
+# ------------------------------------------------------------------------------------------------
 
 class BedResets(dict):
     
@@ -585,7 +589,8 @@ class MultiBed(object):
         self, W,
         rhos=2500.0, rhob=1422.0, es=0.4,
         dp=0.0055, tao=3.0, inner_R=3.5,
-        **options):
+        **options
+    ):
         """Class for axial-flow catalyst bed.
 
         Parameters
@@ -636,12 +641,14 @@ class MultiBed(object):
         self.n_beds = self.n_beds + 1
         self.beds[self.n_beds] = AxialBed(
             W, rhos=rhos, rhob=rhob, es=es, dp=dp, tao=tao, inner_R=inner_R, **options
-            )
+        )
     
-    def add_radial_bed(self, W,
+    def add_radial_bed(
+        self, W,
         rhos=2500.0, rhob=1422.0, es=0.4,
         dp=0.0055, tao=3.0, inner_R=1.5, z=7.0,
-        **options):
+        **options
+    ):
         """Class for radial-flow catalyst bed.
 
         Parameters
@@ -696,6 +703,7 @@ class MultiBed(object):
         self.beds[self.n_beds] = RadialBed(
             W, rhos=rhos, rhob=rhob, es=es, dp=dp, tao=tao, inner_R=inner_R, z=z, **options)
     
+    
     def set_inlet(
         self,
         Feb=707.0,
@@ -707,7 +715,8 @@ class MultiBed(object):
         Fee=0.0,
         SEB=11,
         T=900,
-        P=1.5):
+        P=1.5
+    ):
         """Set inlet conditions of the first catalyst bed.
 
         Parameters
@@ -762,6 +771,7 @@ class MultiBed(object):
         
         self.inlet = self.beds[1].inlet.copy()
     
+    
     def add_resets(self, bed_number, **resets):
         "key=value"
         for key in resets.keys():
@@ -774,10 +784,12 @@ class MultiBed(object):
         else:
             self.resets._set_resets(bed_number, **resets)
     
+    
     def set_bed_steam_ratio(self, bed_number, SEB):
         if bed_number not in self.beds.keys():
             raise KeyError('bed ' + str(bed_number) + " was not added yet")
         self.steam_ratios[bed_number] = SEB
+    
     
     def solve(self, **options):
         "points_eval=None"
@@ -811,12 +823,14 @@ class MultiBed(object):
                 self.beds[i].solve(**options)
             self.outlet = self.beds[self.n_beds].outlet
     
+    
     def get_outlet(self, **options):
         "at solve: points_eval=None"
         try: return self.outlet
         except:
             self.solve(**options)
             return self.outlet
+
     
     def get_heat_consumed(self, initial_T=786.61):
         if self.n_beds == 0:
@@ -831,6 +845,7 @@ class MultiBed(object):
                 heat_consumed[i] = self.beds[i].get_pre_heating(prev_T)
         heat_consumed['total'] = heat_consumed.values.sum()
         return heat_consumed
+
     
     @property
     def conversion(self):
@@ -840,12 +855,14 @@ class MultiBed(object):
         Xto = (self.outlet['Fto'] - self.inlet['Fto']) / self.inlet['Feb']
         return {'Xeb':Xeb, 'Xst':Xst, 'Xbz':Xbz, 'Xto':Xto}
     
+    
     def get_bed_dataframe(self, bed_number, **options):
         "at solve: points_eval=None"
         try: return self.beds[bed_number].get_dataframe()
         except:
             self.solve(**options)
             return self.beds[bed_number].get_dataframe()
+    
     
     def get_dataframe(self, **options):
         "at solve: points_eval=None"
@@ -861,6 +878,7 @@ class MultiBed(object):
         df.set_index('W', inplace=True)
         
         return df
+    
     
     def to_excel(self, filename, **options):
         "at solve: points_eval=None"

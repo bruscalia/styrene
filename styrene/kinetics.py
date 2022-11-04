@@ -5,8 +5,8 @@ Created on Tue May 19 11:15:19 2020
 @author: bruno
 """
 import numpy as np
-from styrene.thermodynamics import get_vHr, get_vSr, get_vGr
-from styrene.data import _va, _vb, _vc, _vd, _vHr_298, _vSr_298
+from styrene.thermodynamics import calc_delta_hr, calc_delta_sr, calc_delta_gibbs
+from styrene.data import DELTA_A, DELTA_B, DELTA_C, DELTA_D, DELTA_HR298, DELTA_SR298
 
 #Ea is in kJ/mol.K
 #Basic kinetic constant from Arrhenius
@@ -17,19 +17,12 @@ def fun_kin(A, Ea, T, R=8.314):
 eb, st, h2, bz, me, to, ee, h2o = np.arange(8)
 components = ['eb', 'st', 'h2', 'bz', 'me', 'to', 'ee', 'h20']
 
-#From Fogler
-
-# b1,b2,b3,b4,b5,b6=-17.34,-1.302e4,5.051,-2.314e-10,1.301e-6,4.931e-3
-# def Kp1(T):
-#     return np.exp(b1+(b2/T)+b3*np.log(T)+(T*(b4*T+b5)+b6)*T)
-
-
 #Equilibrium constant:
 #Result in [bar]
 def Kp1(T, R=8.314):
-    vHr = get_vHr(T, _vHr_298[0], _va[0], _vb[0], _vc[0], _vd[0])
-    vSr = get_vSr(T, _vSr_298[0], _va[0], _vb[0], _vc[0], _vd[0])
-    vGr = get_vGr(T, vHr, vSr)
+    vHr = calc_delta_hr(T, DELTA_HR298[0], DELTA_A[0], DELTA_B[0], DELTA_C[0], DELTA_D[0])
+    vSr = calc_delta_sr(T, DELTA_SR298[0], DELTA_A[0], DELTA_B[0], DELTA_C[0], DELTA_D[0])
+    vGr = calc_delta_gibbs(T, vHr, vSr)
     return np.exp(-vGr / R / T)
 
 #Thermal reactions:
