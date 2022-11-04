@@ -8,9 +8,9 @@ setup(
    author_email='bruscalia12@gmail.com',
    packages=['styrene'],
    install_requires=[
-      'numpy==1.19.*',
+      'numpy==1.20.*',
       'scipy>=1.7.*',
-      'pandas>=1.0.*',
+      'pandas>=1.1.*',
       'matplotlib',
       ],
 )
