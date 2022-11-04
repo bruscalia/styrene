@@ -10,7 +10,7 @@ setup(
    install_requires=[
       'numpy==1.19.*',
       'scipy>=1.7.*',
-      'pandas',
+      'pandas>=1.0.*',
       'matplotlib',
       ],
 )
