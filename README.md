@@ -9,8 +9,9 @@ First, make sure you have a Python 3 environment installed.
 
 To install from github:
 ```
-pip install -e git+ADD_LINK
+pip install -e git+https://github.com/bruscalia/styrene#egg=styrene
 ```
+Note: It might be useful to write "git+https://github.com/bruscalia/styrene#egg=styrene" if installing directly from a Python interpreter as # can be interpreted as a comment.
 
 ## Usage
 
