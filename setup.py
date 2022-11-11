@@ -1,9 +1,15 @@
 from setuptools import setup
 
+
+with open("README.md", "r", encoding="utf-8") as fh:
+   long_description = fh.read()
+
+
 setup(
    name='styrene',
-   version='0.1.0.rc1',
+   version='0.1.0.rc2',
    description='Styrene reactor modeling package.',
+   long_description=long_description,
    author='Bruno Scalia C. F. Leite',
    author_email='bruscalia12@gmail.com',
    packages=['styrene'],

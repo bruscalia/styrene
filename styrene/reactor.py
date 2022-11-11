@@ -6,7 +6,7 @@ import math
 from styrene.bvp import OrthogonalCollocation
 from styrene.kinetics import (rt1, rt2, rt3, rt4, rc1, rc2, rc3, rc4)
 from styrene.kinetics import (ft_reactants, effective_reactions)
-from styrene.kinetics import (components, eb, st, h2, bz, me, to, ee, h2o)
+from styrene.kinetics import (EB, ST, H2, BZ, ME, TO, EE, H2O)
 from styrene.mass_transfer import fnu, fuller_ab_mat, wilke_mist, effective_diff
 from styrene.thermodynamics import get_Cp, calc_delta_hr, calc_hf_temp
 from styrene.fluid_dynamics import calc_pressure_drop, calc_mu_mist
@@ -26,8 +26,7 @@ class CatalystBed(object):
         rhos=2500.0, rhob=1422.0, es=0.4,
         dp=0.0055, tao=3.0, inner_R=3.5, Pmin=0.5, Pterm=None,
         heterogeneous=False, n_points=6,
-        terminal=True, components=components,
-        ivp_rtol=1e-6
+        terminal=True, ivp_rtol=1e-6
     ):
         """Class for catalyst bed.
 
@@ -69,14 +68,10 @@ class CatalystBed(object):
         terminal : bool, optional
             Either or not to use terminal events on ODE solutions, by default True
 
-        components : list, optional
-            List of components labels, by default components
-
         ivp_rtol : float, optional
             Relative tolerance for ODE system, by default 1e-6
         """
 
-        self.components = components
         self.W = W
         self.rhos = rhos
         self.rhob = rhob
@@ -302,9 +297,6 @@ class AxialBed(CatalystBed):
         terminal : bool, optional
             Either or not to use terminal events on ODE solutions, by default True
 
-        components : list, optional
-            List of components labels, by default components
-
         ivp_rtol : float, optional
             Relative tolerance for ODE system, by default 1e-6
         """
@@ -349,14 +341,14 @@ class AxialBed(CatalystBed):
         rr4 = self.eg/self.rhob*rt4(pp, T) + rc4(pp, T)*eff[3]
 
         dF = np.zeros(len(F))
-        dF[eb] = -rr1 - rr2 - rr3
-        dF[st] = rr1 - rr4
-        dF[h2] = rr1 - rr3 - 2*rr4
-        dF[bz] = rr2
-        dF[me] = rr3 + rr4
-        dF[to] = rr3 + rr4
-        dF[ee] = rr2
-        dF[h2o] = 0
+        dF[EB] = -rr1 - rr2 - rr3
+        dF[ST] = rr1 - rr4
+        dF[H2] = rr1 - rr3 - 2*rr4
+        dF[BZ] = rr2
+        dF[ME] = rr3 + rr4
+        dF[TO] = rr3 + rr4
+        dF[EE] = rr2
+        dF[H2O] = 0
 
         Cp = get_Cp(T, A, B, C, D)
         delta_hr = calc_delta_hr(T, DELTA_HR298, DELTA_A, DELTA_B, DELTA_C, DELTA_D)
@@ -426,9 +418,6 @@ class RadialBed(CatalystBed):
         terminal : bool, optional
             Either or not to use terminal events on ODE solutions, by default True
 
-        components : list, optional
-            List of components labels, by default components
-
         ivp_rtol : float, optional
             Relative tolerance for ODE system, by default 1e-6
         """
@@ -470,14 +459,14 @@ class RadialBed(CatalystBed):
         rr4 = self.eg/self.rhob*rt4(pp, T) + rc4(pp, T)*eff[3]
 
         dF = np.zeros(len(F))
-        dF[eb] = -rr1 - rr2 - rr3
-        dF[st] = rr1 - rr4
-        dF[h2] = rr1 - rr3 - 2*rr4
-        dF[bz] = rr2
-        dF[me] = rr3 + rr4
-        dF[to] = rr3 + rr4
-        dF[ee] = rr2
-        dF[h2o] = 0
+        dF[EB] = -rr1 - rr2 - rr3
+        dF[ST] = rr1 - rr4
+        dF[H2] = rr1 - rr3 - 2*rr4
+        dF[BZ] = rr2
+        dF[ME] = rr3 + rr4
+        dF[TO] = rr3 + rr4
+        dF[EE] = rr2
+        dF[H2O] = 0
 
         Cp = get_Cp(T, A, B, C, D)
         delta_hr = calc_delta_hr(T, DELTA_HR298, DELTA_A, DELTA_B, DELTA_C, DELTA_D)
@@ -541,14 +530,14 @@ class IsoBed(CatalystBed):
         rr3 = self.eg/self.rhob*rt3(pp, T) + rc3(pp, T)*eff[2]
         rr4 = self.eg/self.rhob*rt4(pp, T) + rc4(pp, T)*eff[3]
         dF = np.zeros(len(F))
-        dF[eb] = -rr1 - rr2 - rr3
-        dF[st] = rr1 - rr4
-        dF[h2] = rr1 - rr3 - 2*rr4
-        dF[bz] = rr2
-        dF[me] = rr3 + rr4
-        dF[to] = rr3 + rr4
-        dF[ee] = rr2
-        dF[h2o] = 0
+        dF[EB] = -rr1 - rr2 - rr3
+        dF[ST] = rr1 - rr4
+        dF[H2] = rr1 - rr3 - 2*rr4
+        dF[BZ] = rr2
+        dF[ME] = rr3 + rr4
+        dF[TO] = rr3 + rr4
+        dF[EE] = rr2
+        dF[H2O] = 0
 
         return np.append(dF, [0, 0])
 
@@ -628,9 +617,6 @@ class MultiBed(object):
         terminal : bool, optional
             Either or not to use terminal events on ODE solutions, by default True
 
-        components : list, optional
-            List of components labels, by default components
-
         ivp_rtol : float, optional
             Relative tolerance for ODE system, by default 1e-6
         """
@@ -688,9 +674,6 @@ class MultiBed(object):
 
         terminal : bool, optional
             Either or not to use terminal events on ODE solutions, by default True
-
-        components : list, optional
-            List of components labels, by default components
 
         ivp_rtol : float, optional
             Relative tolerance for ODE system, by default 1e-6

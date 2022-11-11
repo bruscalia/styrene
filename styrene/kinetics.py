@@ -9,8 +9,7 @@ def fun_kin(A, Ea, T, R=8.314):
 
 
 # Component labels to use in arrays
-eb, st, h2, bz, me, to, ee, h2o = np.arange(8)
-components = ['eb', 'st', 'h2', 'bz', 'me', 'to', 'ee', 'h20']
+EB, ST, H2, BZ, ME, TO, EE, H2O = np.arange(8)
 
 # Equilibrium constant:
 # Result in [bar]
@@ -26,15 +25,15 @@ def Kp1(T, R=8.314):
 # p in [bar], T in [K], result in [kmol/m**3.h]
 def rt1(p, T):
     Keq = Kp1(T)
-    return fun_kin(2.2215e16, 272.23, T) * (p[eb] - (p[st] * p[h2]) / Keq)
+    return fun_kin(2.2215e16, 272.23, T) * (p[EB] - (p[ST] * p[H2]) / Keq)
 
 
 def rt2(p, T):
-    return fun_kin(2.4217e20, 352.79, T) * p[eb]
+    return fun_kin(2.4217e20, 352.79, T) * p[EB]
 
 
 def rt3(p, T):
-    return fun_kin(3.8224e17, 313.06, T) * p[eb]
+    return fun_kin(3.8224e17, 313.06, T) * p[EB]
 
 
 def rt4(p, T):
@@ -49,7 +48,7 @@ def fKad(T):
 
 # Dimensionless result
 def fnum_ad(p, Kad):
-    return (1 + Kad[eb]*p[eb] + Kad[h2]*p[h2] + Kad[st]*p[st])**2
+    return (1 + Kad[EB]*p[EB] + Kad[H2]*p[H2] + Kad[ST]*p[ST])**2
 
 # Catalyst reactions:
 # p in [bar], T in [K], result in [kmol/kg-cat.h]
@@ -58,14 +57,14 @@ def rc1(p, T):
     Kad = fKad(T)
     k1 = fun_kin(4.594e9, 175.38, T)
     num = fnum_ad(p, Kad)
-    return k1 * Kad[eb] * (p[eb] - (p[st] * p[h2] / Keq)) / num
+    return k1 * Kad[EB] * (p[EB] - (p[ST] * p[H2] / Keq)) / num
 
 
 def rc2(p, T):
     Kad = fKad(T)
     k2 = fun_kin(1.060e15, 296.29, T)
     num = fnum_ad(p, Kad)
-    return k2 * Kad[eb]*p[eb] / num
+    return k2 * Kad[EB]*p[EB] / num
 
 
 def rc3(p, T):
@@ -73,14 +72,14 @@ def rc3(p, T):
     # Original Lee 1e26, suggestion Dimian et.al (2019) 1e22
     k3 = fun_kin(1.246e26, 474.76, T)
     num = num = fnum_ad(p, Kad)
-    return k3 * Kad[eb]*p[eb] * Kad[h2]*p[h2] / num
+    return k3 * Kad[EB]*p[EB] * Kad[H2]*p[H2] / num
 
 
 def rc4(p, T):
     Kad = fKad(T)
     k4 = fun_kin(8.024e10, 213.78, T)
     num = num = fnum_ad(p, Kad)
-    return k4 * Kad[st]*p[st] * Kad[h2]*p[h2] / num
+    return k4 * Kad[ST]*p[ST] * Kad[H2]*p[H2] / num
 
 # Transport equation for reactants:
 def ft_reactants(r, p, T, D, rhos, es, R=8.314e-2):
