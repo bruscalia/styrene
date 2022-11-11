@@ -116,6 +116,7 @@ def calc_pot_sm(T, ek, delta):
 # VISCOSITY OF MIXTURE
 # ------------------------------------------------------------------------------------------------
 
+
 def calc_phi_matrix(mu, Mm):
     """
     Returns the phi matrix used to obtain viscosity of mixture using Wilke's approximation
@@ -135,10 +136,10 @@ def calc_phi_matrix(mu, Mm):
     """
     mu_ratio = np.atleast_2d(mu).reshape([-1, 1]) / np.atleast_2d(mu)
     Mm_ratio = np.atleast_2d(Mm).reshape([-1, 1]) / np.atleast_2d(Mm)
-    
+
     phi = (1 + mu_ratio**0.5 * (1 / Mm_ratio)**0.25) ** 2\
         / ((8 * (1 + Mm_ratio)) ** 0.5)
-        
+
     return phi
 
 
@@ -167,16 +168,16 @@ def calc_mu_components(T, Mm, Tc, Pc, sigma, ek, delta):
     1d array
         Individual viscosities.
     """
-    
+
     mu = np.zeros_like(Mm)
-    
+
     # Hydrocarbons
     mu[HC] = calc_mu_thodos(T, Tc[HC], Pc[HC], Mm[HC])
-    
+
     # Low mass
     potV = calc_pot_sm(T, ek[LOW], delta[LOW])
     mu[LOW] = calc_mu_chap_ens(T, Mm[LOW], sigma[LOW], potV)
-    
+
     return mu
 
 
@@ -242,6 +243,7 @@ def calc_mu_from_components(mu, y, phi):
 # PRESSURE DROP
 # ------------------------------------------------------------------------------------------------
 
+
 def calc_pressure_drop(G, rhog, mu, Ac, dp, rhob, eg, a_erg=1.75, b_erg=150):
     """
     Returns dP/dW at a catalyst bed according to Ergun equation.
@@ -278,10 +280,10 @@ def calc_pressure_drop(G, rhog, mu, Ac, dp, rhob, eg, a_erg=1.75, b_erg=150):
     mu = mu * 1e-7
     return (1 / (Ac*rhob)) * (G / (rhog*dp))\
         * ((1-eg) / eg**3) * (b_erg*(1-eg) * mu/dp + a_erg*G) * 1e-5
-        
+
 
 def calc_pressure_drop_ideal_gas(F, T, P, rhob, dp, eg, Ac, Mm, mu, R=8.314e-2,
-                             a_erg=1.75, b_erg=150, print_Re=False):
+                                 a_erg=1.75, b_erg=150, print_Re=False):
     """
     Returns dP/dW at a catalyst bed according to Ergun equation considering ideal gas.
     Alternative for radial flow: a_erg=1.28,b_erg=458
@@ -332,5 +334,4 @@ def calc_pressure_drop_ideal_gas(F, T, P, rhob, dp, eg, Ac, Mm, mu, R=8.314e-2,
     if print_Re:
         print('Re/(1-eg):', G * dp / mu / (1-eg))
     return (1 / (Ac*rhob)) * (G / (rhog*dp))\
-        *((1-eg) / eg**3) * (b_erg * (1-eg) * mu/dp + a_erg*G) *1e-5
-        
+        * ((1-eg) / eg**3) * (b_erg * (1-eg) * mu/dp + a_erg*G) * 1e-5

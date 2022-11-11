@@ -4,6 +4,7 @@ import numpy as np
 # HEAT CAPACITY OF INDIVIDUAL COMPONENTS
 # ------------------------------------------------------------------------------------------------
 
+
 def heat_capacity(a, b, c, d, T):
     """
     Returns the heat capacity of one component in kJ/kmol at temperature T in K using Reid (1987) equation.
@@ -12,16 +13,16 @@ def heat_capacity(a, b, c, d, T):
     ----------
     a : float
         Coefficient from Reid.
-        
+
     b : float
         Coefficient from Reid.
-        
+
     c : float
         Coefficient from Reid.
-        
+
     d : float
         Coefficient from Reid.
-        
+
     T : float or int
         Temperature in K.
 
@@ -42,16 +43,16 @@ def get_Cp(T, a, b, c, d):
     ----------
     T : float or int
         Temperature in K.
-        
+
     a : 1d array or float
         Coefficients for heat capacity from Reid equation.
-        
+
     b : 1d array or float
         Coefficients for heat capacity from Reid equation.
-        
+
     c : 1d array or float
         Coefficients for heat capacity from Reid equation.
-        
+
     d : 1d array or float
         Coefficients for heat capacity from Reid equation.
 
@@ -67,6 +68,7 @@ def get_Cp(T, a, b, c, d):
 # DELTAS OF REACTION
 # ------------------------------------------------------------------------------------------------
 
+
 def calc_delta_hr(T, delta_hr298, va, vb, vc, vd):
     """
     Returns the heat of reaction in kJ/kmol.
@@ -75,22 +77,22 @@ def calc_delta_hr(T, delta_hr298, va, vb, vc, vd):
     ----------
     T : float or int
         Temperature in K.
-        
+
     delta_hr298 : 1d array, float or int
         Contains heat of reaction at 298.15K.
-        
+
     va : 1d array, float or int
         Contains delta coefficient of the reaction(s).
-        
+
     vb : 1d array, float or int
         Contains delta coefficient of the reaction(s).
-        
+
     vc : 1d array, float or int
         Contains delta coefficient of the reaction(s).
-        
+
     vd : 1d array, float or int
         Contains delta coefficient of the reaction(s).
-        
+
 
     Returns
     -------
@@ -110,22 +112,22 @@ def calc_hf_temp(T, hf_298, a, b, c, d):
     ----------
     T : float or int
         Temperature in K.
-        
+
     hf_298 : 1d array, float or int
         Contains heat of formation at 298.15K.
-        
+
     a : 1d array, float or int
         Contains a coefficient of the heat capacity.
-        
+
     b : 1d array, float or int
         Contains a coefficient of the heat capacity.
-        
+
     c : 1d array, float or int
         Contains a coefficient of the heat capacity.
-        
+
     d : 1d array, float or int
         Contains a coefficient of the heat capacity.
-        
+
 
     Returns
     -------
@@ -145,22 +147,22 @@ def calc_delta_sr(T, delta_sr298, va, vb, vc, vd):
     ----------
     T : float or int
         Temperature in K.
-        
+
     delta_sr298 : 1d array, float or int
         Contains entropy of reaction at 298.15K.
-        
+
     va : 1d array, float or int
         Contains delta coefficient of the reaction(s).
-        
+
     vb : 1d array, float or int
         Contains delta coefficient of the reaction(s).
-        
+
     vc : 1d array, float or int
         Contains delta coefficient of the reaction(s).
-        
+
     vd : 1d array, float or int
         Contains delta coefficient of the reaction(s).
-        
+
 
     Returns
     -------
@@ -170,7 +172,7 @@ def calc_delta_sr(T, delta_sr298, va, vb, vc, vd):
     """
     return np.array(delta_sr298) + np.array(va)*np.log(T/298.15) + np.array(vb)*(T-298.15)\
         + np.array(vc)/2*(T**2-298.15**2) + np.array(vd)/3*(T**3-298.15**3)
-        
+
 
 def calc_delta_gibbs(T, delta_hr, delta_sr, multireaction=False):
     """
@@ -180,10 +182,10 @@ def calc_delta_gibbs(T, delta_hr, delta_sr, multireaction=False):
     ----------
     T : float or int
         Temperature in K.
-        
+
     delta_hr : float, int, or 1d array
         Contains heat of reaction at T in kJ/kmol.
-        
+
     delta_sr : float, int, or 1d array
         Contains entropy of reaction at T in kJ/kmol.K.
 
@@ -194,4 +196,3 @@ def calc_delta_gibbs(T, delta_hr, delta_sr, multireaction=False):
 
     """
     return np.array(delta_hr) - T*np.array(delta_sr)
-

@@ -13,19 +13,19 @@ def calc_fuller_ab(Ma, Mb, nua, nub, T, P):
     ----------
     Ma : float
         Molar mass of component a in kg/kmol.
-        
+
     Mb : float
         Molar mass of component b in kg/kmol.
-        
+
     nua : float
         Fuller coefficient for component a.
-        
+
     nub : float
         Fuller coefficient for component b.
-        
+
     T : float or int
         Temperature in K.
-        
+
     P : float or int
         Pressure in bar.
 
@@ -35,7 +35,8 @@ def calc_fuller_ab(Ma, Mb, nua, nub, T, P):
         Diffusion coefficient of A in B pure in m^2/s.
 
     """
-    Dab = 1e-9 * (T**1.75) * ((1/Ma + 1/Mb) ** 0.5) / (P * ((nua**(1/3) + nub**(1/3))**2))
+    Dab = 1e-9 * (T**1.75) * ((1/Ma + 1/Mb) ** 0.5) / \
+        (P * ((nua**(1/3) + nub**(1/3))**2))
     return Dab
 
 
@@ -47,13 +48,13 @@ def fuller_ab_mat(M, nu, T, P):
     ----------
     M : list or 1d array
         Molar masses of components in kg/kmol.
-        
+
     nu : list or 1d array
         Coefficients of Fuller of components.
-        
+
     T : float or int
         Temperature in K.
-        
+
     P : float or int
         Pressure in bar.
 
@@ -74,6 +75,7 @@ def fuller_ab_mat(M, nu, T, P):
 # MIXTURE
 # ------------------------------------------------------------------------------------------------
 
+
 def wilke_mist(y, mat):
     """
     Returns the diffusion coefficients for each component in the mixture using the Wilke equation.
@@ -82,7 +84,7 @@ def wilke_mist(y, mat):
     ----------
     y : list od 1d array
         Contains fractions of each component in the phase of mixture.
-        
+
     mat : 2d array
         Matrix containing individual diffusion coefficients for each pair AB.
 
@@ -105,10 +107,10 @@ def sm_mist(y, a_est, mat):
     ----------
     y : list od 1d array
         Contains fractions of each component in the phase of mixture.
-        
+
     a_est : 1d array
         Stoichiometric coefficients.
-        
+
     mat : 2d array
         Matrix containing individual diffusion coefficients for each pair AB.
 
@@ -121,8 +123,8 @@ def sm_mist(y, a_est, mat):
     return (
         (1 - y * np.sum(a_est.reshape((-1, 1)) / a_est.reshape((-1, 1)).T, axis=0))
         / (np.sum((a_est.reshape((-1, 1)) / a_est.reshape((-1, 1)).T)
-       * (y.reshape((-1, 1)) - y.reshape((-1, 1)).T)
-       * (1 / mat.T), axis=0))
+                  * (y.reshape((-1, 1)) - y.reshape((-1, 1)).T)
+                  * (1 / mat.T), axis=0))
     )
 
 
@@ -134,10 +136,10 @@ def knudseen(r_pore, T, Mm):
     ----------
     r_pore : float
         Pore radius in m.
-        
+
     T : float or int
         Temperature in K.
-        
+
     Mm : float, int, or 1d array
         Molar mass of each component in kg/kmol.
 
@@ -158,10 +160,10 @@ def effective_diff(Da, tao, es):
     ----------
     Da : float or 1d array
         Contains the diffusion coefficients of each component in the mixture.
-        
+
     tao : float or int
         Tortuosity factor.
-        
+
     es : float or int
         Porosity.
 
@@ -182,13 +184,13 @@ def effective_diff_pore(Dk, Dm, tao, es):
     ----------
     Dk : 1d array
         Knudssen diffusion coefficients of each component.
-        
+
     Dm : 1d array
         Diffusion coefficients of each component in the mixture.
-        
+
     tao : float or int
         Tortuosity factor.
-        
+
     es : float or int
         Porosity.
 
@@ -203,10 +205,12 @@ def effective_diff_pore(Dk, Dm, tao, es):
     Daek = es/tao * Dk * Dm / (Dk + Dm)
     return Daek
 
+
 _nuC = 16.5
 _nuH = 1.98
 _nuO = 5.48
 _nuArom = -20.2
+
 
 def fnu(C, H, O, Arom):
     """
@@ -216,13 +220,13 @@ def fnu(C, H, O, Arom):
     ----------
     C : int
         Number of Carbons in substance.
-        
+
     H : int
         Number of Hidrogens in substance.
-        
+
     O : int
         Number of Oxigens in substance.
-        
+
     Arom : int
         Number of Aromatic rings in substance.
 
@@ -233,6 +237,3 @@ def fnu(C, H, O, Arom):
 
     """
     return C*_nuC + H*_nuH + O*_nuO + Arom*_nuArom
-
-
-
