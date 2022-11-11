@@ -1,17 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue May 19 11:15:19 2020
-
-@author: bruno
-"""
 import numpy as np
 from styrene.thermodynamics import calc_delta_hr, calc_delta_sr, calc_delta_gibbs
 from styrene.data import DELTA_A, DELTA_B, DELTA_C, DELTA_D, DELTA_HR298, DELTA_SR298
 
 # Ea is in kJ/mol.K
 # Basic kinetic constant from Arrhenius
-
-
 def fun_kin(A, Ea, T, R=8.314):
     return A * np.exp(-Ea*1e3 / (R * T))
 
@@ -21,9 +13,7 @@ eb, st, h2, bz, me, to, ee, h2o = np.arange(8)
 components = ['eb', 'st', 'h2', 'bz', 'me', 'to', 'ee', 'h20']
 
 # Equilibrium constant:
-#Result in [bar]
-
-
+# Result in [bar]
 def Kp1(T, R=8.314):
     vHr = calc_delta_hr(
         T, DELTA_HR298[0], DELTA_A[0], DELTA_B[0], DELTA_C[0], DELTA_D[0])
