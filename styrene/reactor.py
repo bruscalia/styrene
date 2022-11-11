@@ -22,12 +22,13 @@ from styrene.data import (MM, TC, PC, SIGMA, EK, DELTA_POT)
 class CatalystBed(object):
 
     def __init__(
-            self, W,
-            rhos=2500.0, rhob=1422.0, es=0.4,
-            dp=0.0055, tao=3.0, inner_R=3.5, Pmin=0.5, Pterm=None,
-            heterogeneous=False, n_points=6,
-            terminal=True, components=components,
-            ivp_rtol=1e-6):
+        self, W,
+        rhos=2500.0, rhob=1422.0, es=0.4,
+        dp=0.0055, tao=3.0, inner_R=3.5, Pmin=0.5, Pterm=None,
+        heterogeneous=False, n_points=6,
+        terminal=True, components=components,
+        ivp_rtol=1e-6
+    ):
         """Class for catalyst bed.
 
         Parameters
@@ -129,19 +130,8 @@ class CatalystBed(object):
         Dme = effective_diff(Dm, self.tao, self.es)
         return Dme
 
-    def set_inlet(
-        self,
-        Feb=707.0,
-        Fst=7.104,
-        Fh2=0.0,
-        Fbz=0.293,
-        Fme=0.0,
-        Fto=4.968,
-        Fee=0.0,
-        Fh2o=11 * 707.0,
-        T=900,
-        P=1.5
-    ):
+    def set_inlet(self, Feb=707.0, Fst=7.104, Fh2=0.0, Fbz=0.293, Fme=0.0,
+                  Fto=4.968, Fee=0.0, Fh2o=11 * 707.0, T=900, P=1.5):
         """Set inlet conditions of catalyst bed.
 
         Parameters
@@ -198,12 +188,10 @@ class CatalystBed(object):
 
     @staticmethod
     def _transport_eq(r, y, dy, d2y, yb, *args):
-
         return d2y - ft_reactants(r, y, *args)
 
     @staticmethod
     def _bc_eq(r, y, dy, d2y, yb, *args):
-
         return y - yb
 
     def solve(self, points_eval=None, **kwargs):
@@ -231,11 +219,14 @@ class CatalystBed(object):
         self.outlet = dict(zip(self._keys, self._outlet_values))
 
     def get_outlet(self, **options):
-        """
-        Returns catalyst bed outlet.
+        """Obtain reactor outlet dictionary.
+        
+        **options are passed to scipy solve_ivp
 
-        Returns:
-            dict: Catalyst bed outlet.
+        Returns
+        -------
+        dict
+            Reactor outlet
         """
         try:
             return self.outlet
@@ -709,19 +700,8 @@ class MultiBed(object):
         self.beds[self.n_beds] = RadialBed(
             W, rhos=rhos, rhob=rhob, es=es, dp=dp, tao=tao, inner_R=inner_R, z=z, **options)
 
-    def set_inlet(
-        self,
-        Feb=707.0,
-        Fst=7.104,
-        Fh2=0.0,
-        Fbz=0.293,
-        Fme=0.0,
-        Fto=4.968,
-        Fee=0.0,
-        SEB=11,
-        T=900,
-        P=1.5
-    ):
+    def set_inlet(self, Feb=707.0, Fst=7.104, Fh2=0.0, Fbz=0.293,
+                  Fme=0.0, Fto=4.968, Fee=0.0, SEB=11, T=900, P=1.5):
         """Set inlet conditions of the first catalyst bed.
 
         Parameters
@@ -777,7 +757,24 @@ class MultiBed(object):
         self.inlet = self.beds[1].inlet.copy()
 
     def add_resets(self, bed_number, **resets):
-        "key=value"
+        """Add valued to be reset at the inlet of a given catalyst bed 
+        (instead of using values of the oulet of the previous bed).
+
+        Parameters
+        ----------
+        bed_number : int
+            Catalyst bed number (starts at 1).
+        
+        resets: iterable
+            Keyword arguments to be reset.
+
+        Raises
+        ------
+        KeyError
+            If bed not yet included
+        KeyError
+            If key not available to reset
+        """
         for key in resets.keys():
             if key not in self._keys:
                 raise KeyError(key + ' is not an available key to reset')
@@ -794,7 +791,15 @@ class MultiBed(object):
         self.steam_ratios[bed_number] = SEB
 
     def solve(self, **options):
-        "points_eval=None"
+        """Solves sequence of ODE systems with given adjustments. 
+        
+        **options is parsed to scipy solve_ivp.
+
+        Raises
+        ------
+        IndexError
+            If no bed was included yet
+        """
 
         if 1 in self.resets.keys():
             self.beds[1].reset_inlet(**self.resets[1])
@@ -826,7 +831,13 @@ class MultiBed(object):
             self.outlet = self.beds[self.n_beds].outlet
 
     def get_outlet(self, **options):
-        "at solve: points_eval=None"
+        """Returns dictionary in reactor outlet.
+
+        Returns
+        -------
+        dict
+            Reactor outlet
+        """
         try:
             return self.outlet
         except:
@@ -856,7 +867,18 @@ class MultiBed(object):
         return {'Xeb': Xeb, 'Xst': Xst, 'Xbz': Xbz, 'Xto': Xto}
 
     def get_bed_dataframe(self, bed_number, **options):
-        "at solve: points_eval=None"
+        """Returns the pandas.DataFrame of profiles in a given catalyst bed.
+
+        Parameters
+        ----------
+        bed_number : int
+            Catalyst bed number (starts at 1).
+
+        Returns
+        -------
+        pandas.DataFrame
+            Profiles along reactor length.
+        """
         try:
             return self.beds[bed_number].get_dataframe()
         except:
@@ -864,13 +886,19 @@ class MultiBed(object):
             return self.beds[bed_number].get_dataframe()
 
     def get_dataframe(self, **options):
-        "at solve: points_eval=None"
+        """Returns the pandas.DataFrame of profiles in the reactor.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Profiles along reactor length.
+        """
         df = self.get_bed_dataframe(1, **options)
         W = df.index.values
 
         for n in range(2, self.n_beds + 1):
             df_bed = self.get_bed_dataframe(n, **options)
-            df = pd.concat((df, df_bed), ignore_index=True)
+            df = pd.concat((df, df_bed), ignore_index=True, axis=0)
             W = np.append(W, df_bed.index.values + W[-1])
 
         df['W'] = W
@@ -879,7 +907,13 @@ class MultiBed(object):
         return df
 
     def to_excel(self, filename, **options):
-        "at solve: points_eval=None"
+        """Saves the pandas.DataFrame of profiles in an Excel file.
+
+        Parameters
+        ----------
+        filename : str
+            Name of destination file without suffix .xlsx.
+        """
         path = filename + ".xlsx"
         with pd.ExcelWriter(path) as writer:
             self.get_dataframe(**options).to_excel(writer,
