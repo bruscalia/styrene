@@ -834,7 +834,7 @@ class MultiBed(object):
             return self.beds[1].get_pre_heating(initial_T)
         elif self.n_beds > 1:
             heat_consumed = pd.Series(name='Q')
-            heat_consumed[1] = self.beds[1].get_pre_heating(initial_T)
+            heat_consumed.loc[1] = self.beds[1].get_pre_heating(initial_T)
             for i in range(2, self.n_beds + 1):
                 prev_T = self.beds[i - 1].outlet['T']
                 heat_consumed[i] = self.beds[i].get_pre_heating(prev_T)
