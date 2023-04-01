@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
    name='styrene',
-   version='0.1.1.dev1',
+   version='0.1.1',
    description='Styrene reactor modeling package.',
    long_description=long_description,
    author='Bruno Scalia C. F. Leite',
