@@ -7,14 +7,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
    name='styrene',
-   version='0.1.0.rc2',
+   version='0.1.1.dev1',
    description='Styrene reactor modeling package.',
    long_description=long_description,
    author='Bruno Scalia C. F. Leite',
    author_email='bruscalia12@gmail.com',
    packages=['styrene'],
    install_requires=[
-      'numpy==1.20.*',
+      'numpy==1.19.*',
       'scipy>=1.7.*',
       'pandas>=1.1.*',
       'matplotlib',

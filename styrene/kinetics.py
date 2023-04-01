@@ -1,6 +1,8 @@
 import numpy as np
+
 from styrene.thermodynamics import calc_delta_hr, calc_delta_sr, calc_delta_gibbs
 from styrene.data import DELTA_A, DELTA_B, DELTA_C, DELTA_D, DELTA_HR298, DELTA_SR298
+
 
 # Ea is in kJ/mol.K
 # Basic kinetic constant from Arrhenius
@@ -104,9 +106,9 @@ def ft_reactants(r, p, T, D, rhos, es, R=8.314e-2):
     rr3 = es*rt3(p, T) + rhos*rc3(p, T)
     rr4 = es*rt4(p, T) + rhos*rc4(p, T)
 
-    fteb_ = -rr1 - rr2 - rr3
+    fteb_ = - rr1 - rr2 - rr3
     ftst_ = rr1 - rr4
-    fth2_ = rr1 - 2*rr4
+    fth2_ = rr1 - rr3 - 2*rr4
 
     return np.array([fteb_, ftst_, fth2_]) * pre.reshape([3, -1])
 
